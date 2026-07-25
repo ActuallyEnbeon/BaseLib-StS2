@@ -3,7 +3,6 @@ using BaseLib.Abstracts;
 using BaseLib.Hooks;
 using HarmonyLib;
 using MegaCrit.Sts2.addons.mega_text;
-using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Localization;
 using MegaCrit.Sts2.Core.Models;
@@ -40,7 +39,7 @@ class AddSubtypesToTypePlaquePatch
     private static LocString TryModifyPlaqueText(LocString originalPlaqueText, CardModel card)
     {
         var runState = card.RunState ?? NullRunState.Instance;
-        var combatState = card.CombatState ?? NullCombatState.Instance;
+        var combatState = card.CombatState;
 
         IEnumerable<LocString> locStringList = [];
 
@@ -49,6 +48,8 @@ class AddSubtypesToTypePlaquePatch
         {
             locStringList = locStringList.Concat(customTypeTextCard.GetTypeModifiers());
         }
+        
+        // TODO - ensure card modifiers will work out of combat
 
         // Then iterate over all hook listeners and get their type modifiers
         foreach (var source in runState.IterateHookListeners(combatState))
