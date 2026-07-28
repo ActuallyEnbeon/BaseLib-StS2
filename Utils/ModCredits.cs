@@ -27,13 +27,23 @@ public static class ModCredits
         Columns3 = 3,
     }
 
-    /// <summary>A single credits section belonging to a mod.</summary>
+    /// <summary>
+    /// A credits section. A <b>leaf</b> renders a gold header plus its names. A
+    /// <b>group</b> (when <paramref name="Children"/> is non-empty) renders a green
+    /// header, then — if a <c>.names</c> key exists — its own names, then its child
+    /// sections. Groups may nest arbitrarily.
+    /// </summary>
     /// <param name="Name">
     /// Section id; combined with the mod id to form the loc keys
     /// <c>&lt;MODID&gt;-&lt;NAME&gt;.header</c> / <c>.names</c>.
     /// </param>
-    /// <param name="Kind">How the section body is laid out.</param>
-    public record Section(string Name, Layout Kind = Layout.Names);
+    /// <param name="Kind">How this section's body is laid out (applies to a group's own names too).</param>
+    /// <param name="Children">Child sections; supplying any makes this a group.</param>
+    public record Section(string Name, Layout Kind = Layout.Names, Section[]? Children = null)
+    {
+        /// <summary>True when this section owns child sections (renders as a green group header).</summary>
+        public bool IsGroup => Children is { Length: > 0 };
+    }
 
     /// <summary>A registered mod and its sections, in registration order.</summary>
     internal record Entry(string ModId, List<Section> Sections);
@@ -66,4 +76,8 @@ public static class ModCredits
     /// <summary>Looks up a key in the vanilla <c>credits</c> loc table.</summary>
     internal static string Resolve(string key)
         => new LocString("credits", key).GetRawText();
+
+    /// <summary>True when <paramref name="key"/> exists in the credits table.</summary>
+    internal static bool Has(string key)
+        => LocString.Exists("credits", key);
 }
