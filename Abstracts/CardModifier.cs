@@ -55,9 +55,10 @@ public abstract class CardModifier : AbstractModel, IComparable<CardModifier>
         ExtendedSaveTypes.RegisterListSaveType<ModifierSave>();
         ExtendedSaveTypes.RegisterDictionarySaveType<string, int>();
         ExtendedSaveTypes.RegisterObjectSaveType<ModifierSave>(
-            ExtendedSaveTypes.PropertyFunc<ModifierSave, ModelId>("Id"), 
-            ExtendedSaveTypes.PropertyFunc<ModifierSave, Dictionary<string, int>>("IntProperties"),
-        ExtendedSaveTypes.PropertyFunc<ModifierSave, Dictionary<string, string>>("AdditionalProperties"));
+            ExtendedSaveTypes.PropertyFunc<ModifierSave, ModelId>(nameof(ModifierSave.Id)), 
+            ExtendedSaveTypes.PropertyFunc<ModifierSave, int>(nameof(ModifierSave.Amount)),
+            ExtendedSaveTypes.PropertyFunc<ModifierSave, Dictionary<string, int>>(nameof(ModifierSave.IntProperties)),
+            ExtendedSaveTypes.PropertyFunc<ModifierSave, Dictionary<string, string>>(nameof(ModifierSave.AdditionalProperties)));
         
         
         ExtendedSaveHandlers<CardModel, SerializableCard>.RegisterSave("BaseLibCardModifiers", 
@@ -467,6 +468,7 @@ public abstract class CardModifier : AbstractModel, IComparable<CardModifier>
     /// </summary>
     /// <param name="originalBlock">The original amount of block that would be gained.</param>
     /// <returns>The amount to add to the block gain.</returns>
+    [Obsolete("Not currently functional.")]
     public virtual decimal ModifyBaseBlockAdditive(decimal originalBlock) => 0M;
 
     /// <summary>
@@ -477,6 +479,7 @@ public abstract class CardModifier : AbstractModel, IComparable<CardModifier>
     /// </summary>
     /// <param name="originalBlock">The original amount of block that would be gained.</param>
     /// <returns>The amount to multiply the block gain by.</returns>
+    [Obsolete("Not currently functional.")]
     public virtual decimal ModifyBaseBlockMultiplicative(decimal originalBlock) => 1M;
     
     /// <summary>
