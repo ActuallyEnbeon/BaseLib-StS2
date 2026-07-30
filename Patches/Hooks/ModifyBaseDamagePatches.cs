@@ -9,7 +9,7 @@ using MegaCrit.Sts2.Core.ValueProps;
 
 namespace BaseLib.Patches.Hooks;
     
-//TODO - Patches for block vars, add to custom calculated vars.
+//TODO - Patches for block vars
 
 /// <summary>
 /// Patches for modifying the base damage of cards.
@@ -19,8 +19,11 @@ namespace BaseLib.Patches.Hooks;
 /// PreviewValue - The amount displayed on the card, which should generally be equivalent to final calculated damage.
 /// </summary>
 [HarmonyPatch]
-public class ModifyBaseDamagePatches
+public static class ModifyBaseDamagePatches
 {
+    /// <summary>
+    /// Modifies calculation used for actual damage dealing.
+    /// </summary>
     [HarmonyPatch(typeof(Hook), nameof(Hook.ModifyDamage))]
     static class ModifyDamageCalc
     {

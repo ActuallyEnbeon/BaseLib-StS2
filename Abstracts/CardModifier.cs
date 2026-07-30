@@ -442,7 +442,6 @@ public abstract class CardModifier : AbstractModel, IComparable<CardModifier>
     /// Functions like an EnchantmentModel's EnchantDamageAdditive.
     /// Add to the amount of damage that this modifier's card does.
     /// This hook runs BEFORE all other damage modification hooks.
-    /// NOT YET FULLY FUNCTIONAL.
     /// </summary>
     /// <param name="originalDamage">The amount of damage that would be dealt.</param>
     /// <param name="props">ValueProp for damage.</param>
@@ -453,7 +452,6 @@ public abstract class CardModifier : AbstractModel, IComparable<CardModifier>
     /// Functions like an EnchantmentModel's EnchantDamageMultiplicative.
     /// Multiply the amount of damage that this modifier's card does.
     /// This hook runs BEFORE all other damage modification hooks.
-    /// NOT YET FULLY FUNCTIONAL.
     /// </summary>
     /// <param name="originalDamage">The amount of damage that would be dealt.</param>
     /// <param name="props">ValueProp for damage.</param>
@@ -469,7 +467,7 @@ public abstract class CardModifier : AbstractModel, IComparable<CardModifier>
     /// <param name="originalBlock">The original amount of block that would be gained.</param>
     /// <returns>The amount to add to the block gain.</returns>
     [Obsolete("Not currently functional.")]
-    public virtual decimal ModifyBaseBlockAdditive(decimal originalBlock) => 0M;
+    public virtual decimal ModifyBaseBlockAdditive(decimal originalBlock, ValueProp props) => 0M;
 
     /// <summary>
     /// Functions like an EnchantmentModel's EnchantBlockMultiplicative.
@@ -480,7 +478,7 @@ public abstract class CardModifier : AbstractModel, IComparable<CardModifier>
     /// <param name="originalBlock">The original amount of block that would be gained.</param>
     /// <returns>The amount to multiply the block gain by.</returns>
     [Obsolete("Not currently functional.")]
-    public virtual decimal ModifyBaseBlockMultiplicative(decimal originalBlock) => 1M;
+    public virtual decimal ModifyBaseBlockMultiplicative(decimal originalBlock, ValueProp props) => 1M;
     
     /// <summary>
     /// Called after the card's OnPlay method is called. Occurs before normal AfterCardPlayed hook.
