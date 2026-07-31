@@ -11,9 +11,10 @@ internal class NCreatureVisualsFactory : NodeFactory<NCreatureVisuals>
         new NodeInfo<Node2D>("%PhobiaModeVisuals"),
         new NodeInfo<Control>("Bounds"), //Although it will use uniqueName, NCreature requires fixed path.
         new NodeInfo<Marker2D>("%CenterPos"),
+        new NodeInfo<Control>("%FormVfx"),
         new NodeInfo<Marker2D>("IntentPos"),
         new NodeInfo<Marker2D>("%OrbPos"),
-        new NodeInfo<Marker2D>("%TalkPos")
+        new NodeInfo<Marker2D>("%TalkPos"),
     ])
     { }
 
@@ -71,6 +72,15 @@ internal class NCreatureVisualsFactory : NodeFactory<NCreatureVisuals>
                 var center = new Marker2D();
                 target.AddUnique(center, "CenterPos");
                 center.Position = bounds.Position + (bounds.Size * new Vector2(0.5f, 0.6f));
+                break;
+            case "%FormVfx":
+                var formVfxControl = new Control();
+                formVfxControl.Size = Vector2.Zero;
+                formVfxControl.Position = Vector2.Zero;
+                formVfxControl.MouseFilter = Control.MouseFilterEnum.Ignore;
+                
+                target.AddUnique(formVfxControl, "FormVfx");
+                target.MoveChild(formVfxControl, 0);
                 break;
         }
     }
