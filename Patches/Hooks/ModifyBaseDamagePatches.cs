@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using BaseLib.Abstracts;
 using BaseLib.Extensions;
 using BaseLib.Utils.Patching;
 using HarmonyLib;
@@ -211,9 +212,9 @@ public static class ModifyBaseDamagePatches
         }
     }
     
-    static decimal AdjustBaseUnenchanted(bool runGlobalHooks, decimal num, DynamicVar dynVar, CardModel card)
+    static decimal AdjustBaseUnenchanted(bool runGlobalHooks, decimal num, DynamicVar dynVar, CardModel? card)
     {
-        if (card.Enchantment != null) return num;
+        if (card == null || card.Enchantment != null) return num;
 
         var modifiedBase = dynVar is CalculatedVar ? dynVar.BaseValue : num;
         var props = ValuePropForVar(dynVar);
@@ -318,6 +319,12 @@ public static class ModifyBaseDamagePatches
 
     private static CardModel? CardOwnerForVar(DynamicVar dynVar)
     {
-        return dynVar._owner as CardModel;
+        return dynVar._owner switch
+               {
+                   CardModel card => card,
+                   EnchantmentModel enchant => enchant._card,
+                   CardModifier modifier => modifier.Owner,
+                   _ => null
+               };
     }
 }
