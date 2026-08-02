@@ -297,7 +297,7 @@ public static class ModifyBaseDamagePatches
             }
         }
 
-        return Math.Max(damage, 0);
+        return damage;
     }
 
     /// <summary>
@@ -323,7 +323,7 @@ public static class ModifyBaseDamagePatches
             }
         }
 
-        return Math.Max(damage, 0);
+        return damage;
     }
 
     private static ValueProp ValuePropForVar(DynamicVar dynVar)
