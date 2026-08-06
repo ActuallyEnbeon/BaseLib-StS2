@@ -1,4 +1,5 @@
-﻿using BaseLib.Extensions;
+﻿using System.Reflection;
+using BaseLib.Extensions;
 using BaseLib.Patches.Content;
 using BaseLib.Utils;
 using Godot;
@@ -276,24 +277,17 @@ public abstract class CustomActModel : ActModel, ICustomModel, ISceneConversions
     [HarmonyPatch(typeof(NTreasureRoom), nameof(NTreasureRoom._Ready))]
     public static class CustomActTreasureChest
     {
-        private static readonly AccessTools.FieldRef<NTreasureRoom, IRunState?> RunStateRef =
-            AccessTools.FieldRefAccess<NTreasureRoom, IRunState?>("_runState");
-
-        private static readonly AccessTools.FieldRef<NTreasureRoom, Node2D?> ChestNodeRef =
-            AccessTools.FieldRefAccess<NTreasureRoom, Node2D?>("_chestNode");
-
-        private static readonly AccessTools.FieldRef<NTreasureRoom, NButton?> ChestButtonRef =
-            AccessTools.FieldRefAccess<NTreasureRoom, NButton?>("_chestButton");
+        private static readonly FieldInfo? ChestNode = typeof(NTreasureRoom).Field("_chestNode");
 
         [HarmonyPostfix]
         public static void InsertCustomChestVisualNode(NTreasureRoom __instance)
         {
             // validation
-            IRunState? runState = RunStateRef(__instance);
+            IRunState? runState = __instance._runState;
             if (runState?.Act is not CustomActModel customActModel) return;
             if (customActModel.CustomChestScene is null) return;
-            Node2D? chestNode = ChestNodeRef(__instance);
-            NButton? chestButton = ChestButtonRef(__instance);
+            Node2D? chestNode = ChestNode?.GetValue(__instance) as Node2D;
+            NButton? chestButton = __instance._chestButton; //Now NTreasureButton, which does still inherit NButton
             if (chestNode is null || chestButton is null) // should in theory never be the case
             {
                 BaseLibMain.Logger.Warn("References not found. Using normal Chest Visuals instead");
