@@ -5,7 +5,6 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes;
-using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.HoverTips;
 using MegaCrit.Sts2.Core.Nodes.Relics;
 using MegaCrit.Sts2.Core.Nodes.Screens.CharacterSelect;
@@ -96,7 +95,7 @@ internal static class CharacterSelectStartingRelicsPatch
     [HarmonyPostfix]
     private static void OnEmbarkPressedPostfix(NCharacterSelectScreen __instance)
     {
-        if (__instance.Lobby.LocalPlayer.isReady)
+        if (__instance.Lobby.LobbyLocalReady())
         {
             SetInteractionEnabled(__instance, enabled: false);
         }

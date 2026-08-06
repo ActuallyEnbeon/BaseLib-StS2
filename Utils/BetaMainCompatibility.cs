@@ -17,6 +17,7 @@ using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Singleton;
+using MegaCrit.Sts2.Core.Multiplayer.Game.Lobby;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.ValueProps;
@@ -79,6 +80,21 @@ public static class BetaMainCompatibility
     {
         return _isUsingButtonInput.Get(controllerManager);
     }
+
+    /// <summary>
+    /// Compatibility from 107 -> 110, StartRunLobbyPlayer rename of LobbyPlayer type
+    /// </summary>
+    public static bool LobbyLocalReady(this StartRunLobby lobby)
+    {
+        return _lobbyPlayerIsReady.Get(_lobbyPlayer.Get(lobby));
+    }
+
+    private static Type _lobbyPlayerType = "MegaCrit.Sts2.Core.Entities.Multiplayer.StartRunLobbyPlayer".TryGetType()
+                                           ?? "MegaCrit.Sts2.Core.Entities.Multiplayer.LobbyPlayer".TryGetType()
+                                           ?? throw new Exception("Unable to find type for StartRunLobbyPlayer");
+
+    private static VariableReference<object> _lobbyPlayer = new(typeof(StartRunLobby), "LocalPlayer");
+    private static VariableReference<bool> _lobbyPlayerIsReady = new(_lobbyPlayerType, "isReady");
 
     private static VariableReference<bool> _isUsingButtonInput = new(
         (typeof(NControllerManager), "IsUsingController"),
