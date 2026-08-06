@@ -52,7 +52,7 @@ public abstract class CustomPile : CardPile
     /// <param name="cardNode"></param>
     /// <param name="oldPile"></param>
     /// <returns></returns>
-    public virtual bool CustomTween(Tween tween, CardModel card, NCard cardNode, CardPile oldPile)
+    public virtual bool CustomTween(Tween tween, CardModel card, NCard cardNode, CardPile? oldPile)
     {
         return false;
     }

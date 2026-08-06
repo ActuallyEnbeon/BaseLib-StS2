@@ -521,12 +521,36 @@ public class InstructionPatcher(IEnumerable<CodeInstruction> instructions)
         return this;
     }
 
+    public InstructionPatcher CopyMatch(int matchStartIndex, int length, out List<CodeInstruction> match)
+    {
+        if (_index < 0) throw new InvalidOperationException("Attempted to CopyMatch without any match found");
+        
+        if (matchStartIndex < 0) throw new ArgumentException("CopyMatch matchStartIndex must be greater than or equal to zero");
+        if (length < 1) throw new ArgumentException("CopyMatch length must be greater than or equal to one");
+        
+        if (matchStartIndex > _index - _lastMatchStart)
+            throw new InvalidOperationException("CopyMatch matchStartIndex is higher than match length");
+        
+        var copyStart = _lastMatchStart + matchStartIndex;
+        if (copyStart + length > _index)
+            throw new InvalidOperationException("CopyMatch length too long, goes beyond end of previous match");
+
+        match = _code.GetRange(copyStart, length).Select(instruction => instruction.Clone()).ToList();
+        
+        Log.Add($"Copied {match.Count} instructions:\n");
+        foreach (var instruction in match)
+        {
+            Log.Add($" - {instruction}");
+        }
+        return this;
+    }
+
     /// <summary>
     /// Inserts a copy of existing CodeInstructions determined by offset.
     /// Labels and blocks are not maintained, only opcodes and operands.
     /// </summary>
-    /// <param name="startOffset"></param>
-    /// <param name="copyLength"></param>
+    /// <param name="startOffset">Offset from current index to copy from.</param>
+    /// <param name="copyLength">Number of instructions to copy.</param>
     /// <returns></returns>
     /// <exception cref="Exception"></exception>
     public InstructionPatcher InsertCopy(int startOffset, int copyLength)

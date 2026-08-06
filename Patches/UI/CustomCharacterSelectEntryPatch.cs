@@ -106,7 +106,7 @@ internal static class CustomCharacterSelectEntryPatch
     private static void OnEmbarkPressedPostfix(NCharacterSelectScreen __instance)
     {
         var state = ScreenStates.Get(__instance);
-        if (state == null || !__instance.Lobby.LocalPlayer.isReady) return;
+        if (state == null || !__instance.Lobby.LobbyLocalReady()) return;
 
         foreach (var button in state.Buttons)
         {

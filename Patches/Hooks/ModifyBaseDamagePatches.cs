@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using BaseLib.Abstracts;
 using BaseLib.Extensions;
 using BaseLib.Utils.Patching;
 using HarmonyLib;
@@ -74,7 +75,7 @@ public static class ModifyBaseDamagePatches
             yield return typeof(CalculatedDamageVar).Method(nameof(CalculatedDamageVar.UpdateCardPreview));
         }
 
-        //Patch for modidfy calculation for enchanted cards
+        //Patch for modify calculation for enchanted cards
         [HarmonyTranspiler]
         static List<CodeInstruction> AdjustBaseEnchanted(IEnumerable<CodeInstruction> code, MethodBase original)
         {
@@ -211,10 +212,20 @@ public static class ModifyBaseDamagePatches
         }
     }
     
-    static decimal AdjustBaseUnenchanted(bool runGlobalHooks, decimal num, DynamicVar dynVar, CardModel card)
+    /* For damage var - num passed through is set to actual calculated value if runGlobalHooks
+     * then PreviewValue is set to num
+     *
+     * For calculated damage - num passed in is Calculate result.
+     * Then, if runGlobalHooks, num is used as base value for calculation.
+     * if !runGlobalHooks, num is used for preview value
+     *
+     * When runGlobalHooks is false, returned value should be "final" preview value
+     */
+    static decimal AdjustBaseUnenchanted(bool runGlobalHooks, decimal num, DynamicVar dynVar, CardModel? card)
     {
-        if (card.Enchantment != null) return num;
+        if (card == null || card.Enchantment != null) return num;
 
+        //First, calculate EnchantedValue to control highlighting.
         var modifiedBase = dynVar is CalculatedVar ? dynVar.BaseValue : num;
         var props = ValuePropForVar(dynVar);
 
@@ -225,14 +236,24 @@ public static class ModifyBaseDamagePatches
         {
             dynVar.EnchantedValue = modifiedBase;
         }
-        else
+        
+        //Now, calculate preview value.
+        var preview = modifiedBase;
+        if (dynVar is CalculatedVar)
         {
-            // Card is an enchantment preview, but has no enchantment.
-            dynVar.PreviewValue = modifiedBase;
+            preview = num;
+            preview = ModifyBaseDamageAdditiveInternal(preview, props, card);
+            preview = ModifyBaseDamageMultiplicativeInternal(preview, props, card);
+        }
+        
+        //Have to set preview value manually for this case due to not having an enchantment
+        if (card.IsEnchantmentPreview)
+        {
+            dynVar.PreviewValue = preview;
         }
 
         //If running global hooks, apply calculation only to set EnchantedValue to control highlighting color
-        return runGlobalHooks ? num : modifiedBase;
+        return runGlobalHooks ? num : preview;
     }
 
     static decimal AdjustExtraUnenchanted(decimal num, DynamicVar dynVar, ValueProp props, CardModel? card)
@@ -276,7 +297,7 @@ public static class ModifyBaseDamagePatches
             }
         }
 
-        return Math.Max(damage, 0);
+        return damage;
     }
 
     /// <summary>
@@ -302,7 +323,7 @@ public static class ModifyBaseDamagePatches
             }
         }
 
-        return Math.Max(damage, 0);
+        return damage;
     }
 
     private static ValueProp ValuePropForVar(DynamicVar dynVar)
@@ -318,6 +339,12 @@ public static class ModifyBaseDamagePatches
 
     private static CardModel? CardOwnerForVar(DynamicVar dynVar)
     {
-        return dynVar._owner as CardModel;
+        return dynVar._owner switch
+               {
+                   CardModel card => card,
+                   EnchantmentModel enchant => enchant._card,
+                   CardModifier modifier => modifier.Owner,
+                   _ => null
+               };
     }
 }

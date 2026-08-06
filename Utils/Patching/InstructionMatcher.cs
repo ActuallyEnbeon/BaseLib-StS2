@@ -19,14 +19,17 @@ public class InstructionMatcher() : IMatcher
         log.Add("Starting InstructionMatcher");
         matchStart = startIndex;
         matchEnd = matchStart;
-        int matchIndex = 0;
-        for (int i = startIndex; i < code.Count; ++i)
+        var matchIndex = 0;
+        var matchInstructionCount = 0;
+        
+        for (var i = startIndex; i < code.Count; ++i)
         {
             InstructionMatch matchTarget = _target[matchIndex];
             CodeInstruction matchTest = code[i];
 
             if (matchTarget.Test(matchTest, log))
             {
+                ++matchInstructionCount;
                 if (matchTarget.StoreOperandKey != null)
                 {
                     log.Add($"Stored operand {matchTarget.StoreOperandKey}:{matchTest.operand}");
@@ -37,7 +40,7 @@ public class InstructionMatcher() : IMatcher
                 if (matchIndex >= _target.Count)
                 {
                     matchEnd = i + 1;
-                    matchStart = matchEnd - _target.Count;
+                    matchStart = matchEnd - matchInstructionCount;
                     return true;
                 }
                 continue;
@@ -45,16 +48,23 @@ public class InstructionMatcher() : IMatcher
 
             //Match failed
             
-            if (matchIndex <= 0) continue;
+            if (matchIndex <= 0)
+            {
+                matchInstructionCount = 0;
+                continue;
+            }
 
             if (matchTarget.IsLazy)
             {
+                ++matchInstructionCount;
                 log.Add("Ignoring mismatch; current match is lazy");
             }
             else
             {
                 log.Add($"Match ended, opcodes do not match ({matchTest.opcode}, {matchTarget.Opcodes})");
+                matchInstructionCount = 0;
                 matchIndex = 0;
+                --i; //Test instruction again as start of new match
             }
         }
         return false;
@@ -104,16 +114,22 @@ public class InstructionMatcher() : IMatcher
         private bool OperandMatch(CodeInstruction matchTest)
         {
             return (OperandMatchPredicate?.Invoke(matchTest.operand) != false) 
-                && (Operand == null || Equals(ComparisonOperand(matchTest), Operand) || Equals(matchTest.operand, Operand));
+                && (Operand == null || OperandsEquivalent(matchTest.operand, Operand));
+        }
+
+        public static bool OperandsEquivalent(object? operandA, object? operandB)
+        {
+            return Equals(ComparisonOperand(operandA), ComparisonOperand(operandB))
+                   || Equals(operandA, operandB);
         }
         
-        private object ComparisonOperand(CodeInstruction codeInstruction)
+        private static object? ComparisonOperand(object? operand)
         {
-            if (codeInstruction.operand is LocalBuilder localBuilder)
+            if (operand is LocalBuilder localBuilder)
             {
                 return localBuilder.LocalIndex;
             }
-            return codeInstruction.operand;
+            return operand;
         }
 
         private bool OpcodeMatch(CodeInstruction matchTest)
@@ -123,13 +139,16 @@ public class InstructionMatcher() : IMatcher
 
         public override string ToString()
         {
-            return $"[{Opcodes.AsReadable()}] {(OperandMatchPredicate == null ? Operand?.ToString() : "Operand Predicate")}";
+            return CustomMatchPredicate != null ? "[Custom Match]" 
+                : $"[{Opcodes.AsReadable()}] {(OperandMatchPredicate == null ? Operand?.ToString() : "Operand Predicate")}";
         }
 
         public bool Test(CodeInstruction matchTest, List<string> log)
         {
-            if (CustomMatchPredicate?.Invoke(matchTest) == true)
+            if (CustomMatchPredicate != null)
             {
+                if (!CustomMatchPredicate(matchTest)) return false;
+                
                 log.Add($"Custom match {matchTest}");
                 return true;
             }
@@ -227,6 +246,20 @@ public class InstructionMatcher() : IMatcher
             OpCodes.Ldloca,
             OpCodes.Ldloca_S,
         ]));
+        return this;
+    }
+
+    public InstructionMatcher ldloc(int localIndex)
+    {
+        _target.Add(new InstructionMatch(instruction => instruction.IsLdloc() && instruction.LocalIndex() == localIndex));
+        return this;
+    }
+
+    public InstructionMatcher ldloc(string operandStoreKey)
+    {
+        _target.Add(new InstructionMatch(instruction => instruction.IsLdloc()
+                                                        && InstructionMatch.OperandsEquivalent(instruction.operand,
+                                                            _operandDict[operandStoreKey])));
         return this;
     }
 
@@ -678,13 +711,23 @@ public class InstructionMatcher() : IMatcher
     {
         return ldfld(AccessTools.Field(declaringType, fieldName));
     }
-    public InstructionMatcher ldfld(FieldInfo? field)
+    public InstructionMatcher ldfld(FieldInfo? field = null)
     {
         _target.Add(new(OpCodes.Ldfld, field));
         return this;
     }
+    public InstructionMatcher ldflda(Type declaringType, string fieldName) /*Ldflda = 0x7c,*/
+    {
+        return ldflda(AccessTools.Field(declaringType, fieldName));
+    }
+    public InstructionMatcher ldflda(FieldInfo? field = null)
+    {
+        _target.Add(new(OpCodes.Ldflda, field));
+        return this;
+    }
 
-    /*Ldflda = 0x7c,*/
+
+    
     public InstructionMatcher stfld(Type declaringType, string fieldName)
     {
         return stfld(AccessTools.Field(declaringType, fieldName));
