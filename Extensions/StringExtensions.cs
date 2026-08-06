@@ -75,17 +75,18 @@ public static class StringExtensions
     }
     
     /// <summary>
-    /// extension method for attempting to retrieve a basegame type by name, mainly used for beta/main branch compatibility.
+    /// extension method for attempting to retrieve a type by name, mainly used for beta/main branch compatibility.
+    /// Mainly intended for use getting basegame types, as it checks the sts2 dll first.
     /// </summary>
-    /// <param name="typeName"></param>
-    /// <returns></returns>
     public static Type? TryGetType(this string typeName)
     {
         try
         {
             return Type.GetType($"{typeName}, sts2");
         }
-        catch (Exception) { }
-        return null;
+        catch (Exception)
+        {
+            return AccessTools.TypeByName(typeName);
+        }
     }
 }
