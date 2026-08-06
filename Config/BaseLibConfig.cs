@@ -31,7 +31,7 @@ internal class BaseLibConfig : SimpleModConfig
     public static bool ShowPotionModSource { get; set; } = true;
     public static bool ShowAncientModSource { get; set; } = true;
     public static bool ShowEventModSource { get; set; } = true;
-    public static bool ShowMonsterModSource { get; set; } = true;
+    public static bool ShowMonsterModSource { get; set; } = false;
     public static bool ShowCombatElementModSource { get; set; } = false;
 
     [ConfigSection("HarmonyDumpSection")]
