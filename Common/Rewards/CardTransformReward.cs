@@ -108,7 +108,7 @@ public sealed class CardTransformReward(Player player) : CustomReward(player)
     protected override async Task<bool> OnSelect()
     {
         BaseLibMain.Logger.Info("Obtained card transformation from reward");
-        return await RunManager.Instance.RewardSynchronizer.DoUnsyncedCardTransform(Player, Amount, true);
+        return await RunManager.Instance.RewardSynchronizer.DoUnsyncedCardTransform(Player, Amount, Upgrade);
     }
 }
 
