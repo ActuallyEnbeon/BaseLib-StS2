@@ -123,7 +123,7 @@ static class TransformRewardSynchronizerPatches
         public async Task<bool> DoUnsyncedCardTransform(Player player, int maxCards = 1, bool upgrade = false)
         {
             var loc = upgrade ?
-                CardSelectorPrefsExtensions.TransformAndUpgradeSelectionPrompt :
+                CardSelectorPrefs.TransformAndUpgradeSelectionPrompt :
                 CardSelectorPrefs.TransformSelectionPrompt;
             CardSelectorPrefs prefs = new CardSelectorPrefs(loc, 1, maxCards)
             {
