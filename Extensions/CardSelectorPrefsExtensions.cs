@@ -11,6 +11,6 @@ public static class CardSelectorPrefsExtensions
     /// <summary>
     /// Static reference to "Transform and Upgrade" selection screen localization
     /// </summary>
-    public static LocString TransformAndUpgradeSelectionPrompt =>
-        new LocString(CardSelectorPrefs._cardSelectionLocFilePath, "TO_TRANSFORM_AND_UPGRADE");
+    internal static LocString TransformAndUpgradeSelectionPrompt =>
+        new LocString(CardSelectorPrefs._cardSelectionLocFilePath, "BASELIB-TO_TRANSFORM_AND_UPGRADE");
 }
