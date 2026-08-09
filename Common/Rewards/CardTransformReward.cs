@@ -48,8 +48,8 @@ public sealed class CardTransformReward(Player player) : CustomReward(player)
     public required int MaxCards;
 
     /// <summary>
-    /// The description to show in the reward screen,
-    /// switches based on whether the reward will upgrade the transformed cards
+    /// The description to show in the reward screen.
+    /// Switches wording based on whether the reward will upgrade the transformed cards
     /// </summary>
     public override LocString Description
     {
@@ -138,7 +138,7 @@ static class TransformRewardSynchronizerPatches
             {
                 CardModel newCard = CardFactory.CreateRandomCardForTransform(card, isInCombat: false, player.RunState.Rng.Niche);
 
-                // MAYBE: potentially add a toggle for keeping upgrade state;
+                // MAYBE: potentially add a toggle for keeping upgrade state and enchantments (like ancient transformations)
                 // and a more robust handler for multi-upgrade cards/upgrading more than once?
                 if (upgrade)
                 {
