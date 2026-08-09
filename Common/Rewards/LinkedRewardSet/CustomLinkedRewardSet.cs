@@ -39,11 +39,13 @@ public class CustomLinkedRewardSet : CustomReward
     }
     
     
-    private LocString HoverTipTitle => new("static_hover_tips", LinkedRewardType == LinkedRewardType.Bundled 
+    private LocString HoverTipTitle => new("static_hover_tips", LinkedRewardType == LinkedRewardSet.LinkedRewardType.Bundled 
                 ? "BASELIB-BUNDLED_REWARDS.title" : "BASELIB-EXCLUSIVE_REWARDS.title");
-    private LocString HoverTipDesc => new("static_hover_tips", LinkedRewardType == LinkedRewardType.Bundled
+    private LocString HoverTipDesc => new("static_hover_tips", LinkedRewardType == LinkedRewardSet.LinkedRewardType.Bundled
                 ? "BASELIB-BUNDLED_REWARDS.description" : "BASELIB-EXCLUSIVE_REWARDS.description");
     public HoverTip HoverTip => new(HoverTipTitle, HoverTipDesc);
+
+    /// <inheritdoc />
     public override LocString Description => new("gameplay_ui", "COMBAT_REWARD_LINKED");
     
     
@@ -53,9 +55,15 @@ public class CustomLinkedRewardSet : CustomReward
     private Reward? _pendingSelection;
     
     public IReadOnlyList<Reward> Rewards => _rewards.ToList();
+
+    /// <inheritdoc />
     protected override RewardType RewardType  => CustomLinkedRewardType;
     public LinkedRewardType LinkedRewardType => _linkedRewardType;
+
+    /// <inheritdoc />
     public override int RewardsSetIndex  => Rewards.Max(r => r.RewardsSetIndex);
+
+    /// <inheritdoc />
     public override bool IsPopulated  => _rewards.All(r => r.IsPopulated);
 
 
