@@ -5,5 +5,5 @@
   "BASELIB-EXHAUST_PILE": "Exhaust Pile",
   "BASELIB-HAND": "Hand",
   "BASELIB-DECK": "Deck",
-  "BASELIB-TO_TRANSFORM_AND_UPGRADE": "Choose {Amount:plural:a card|Up to [blue]{}[/blue] cards} to [gold]Transform[/gold] and [gold]Upgrade[/gold]."
+  "BASELIB-TO_TRANSFORM_AND_UPGRADE": "Choose {Amount:plural:a card|[blue]{}[/blue] cards} to [gold]Transform[/gold] and [gold]Upgrade[/gold]."
 }
