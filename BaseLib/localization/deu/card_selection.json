@@ -4,5 +4,6 @@
   "BASELIB-DISCARD_PILE": "Abwurfstapel",
   "BASELIB-EXHAUST_PILE": "Erschöpfungsstapel",
   "BASELIB-HAND": "Hand",
-  "BASELIB-DECK": "Deck"
+  "BASELIB-DECK": "Deck",
+  "BASELIB-TO_TRANSFORM_AND_UPGRADE": "Wähle {Amount:plural:eine Karte,|[blue]{}[/blue] Karten,} die du [gold]Transformierst[/gold] und [gold]Verbesserst[/gold]."
 }
