@@ -4,5 +4,6 @@
   "BASELIB-DISCARD_PILE": "弃牌堆",
   "BASELIB-EXHAUST_PILE": "消耗堆",
   "BASELIB-HAND": "手牌",
-  "BASELIB-DECK": "牌组"
+  "BASELIB-DECK": "牌组",
+  "BASELIB-TO_TRANSFORM_AND_UPGRADE": "选择{Amount:plural:一张牌:[blue]{}[/blue]张牌}来[gold]变化[/gold]并[gold]升级[/gold]"
 }

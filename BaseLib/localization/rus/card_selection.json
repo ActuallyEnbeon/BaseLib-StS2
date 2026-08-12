@@ -4,5 +4,6 @@
   "BASELIB-DISCARD_PILE": "Стопка сброса",
   "BASELIB-EXHAUST_PILE": "Стопка пепла",
   "BASELIB-HAND": "Рука",
-  "BASELIB-DECK": "Колода"
+  "BASELIB-DECK": "Колода",
+  "BASELIB-TO_TRANSFORM_AND_UPGRADE": "Выберите {Amount:plural(ru):карту, которую|[blue]{}[/blue] карты, которые|[blue]{}[/blue] карт, которые} хотите [gold]преобразовать[/gold] и [gold]улучшить[/gold]."
 }
