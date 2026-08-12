@@ -8,9 +8,13 @@ namespace BaseLib.Extensions;
 /// </summary>
 public static class CardSelectorPrefsExtensions
 {
-    /// <summary>
-    /// Static reference to "Transform and Upgrade" selection screen localization
-    /// </summary>
-    public static LocString TransformAndUpgradeSelectionPrompt =>
-        new LocString(CardSelectorPrefs._cardSelectionLocFilePath, "TO_TRANSFORM_AND_UPGRADE");
+    extension(CardSelectorPrefs)
+    {
+        /// <summary>
+        /// Static reference to "Transform and Upgrade" selection screen localization
+        /// </summary>
+        public static LocString TransformAndUpgradeSelectionPrompt =>
+            new LocString(CardSelectorPrefs._cardSelectionLocFilePath, "BASELIB-TO_TRANSFORM_AND_UPGRADE");
+
+    }
 }

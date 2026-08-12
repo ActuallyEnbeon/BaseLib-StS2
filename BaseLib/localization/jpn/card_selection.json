@@ -4,5 +4,6 @@
   "BASELIB-DISCARD_PILE": "捨て札",
   "BASELIB-EXHAUST_PILE": "廃棄札",
   "BASELIB-HAND": "手札",
-  "BASELIB-DECK": "デッキ"
+  "BASELIB-DECK": "デッキ",
+  "BASELIB-TO_TRANSFORM_AND_UPGRADE": "{Amount:plural:カード1枚:[blue]{}[/blue]枚のカード}を[gold]変化[/gold]させ、[gold]アップグレード[/gold]する"
 }
