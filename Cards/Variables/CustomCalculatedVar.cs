@@ -20,6 +20,20 @@ public class CustomCalculatedVar : CalculatedVar
     private Func<RelicModel, Creature?, decimal>? _relicCalc = null;
     private Func<PowerModel, Creature?, decimal>? _powerCalc = null;
     private Func<DynamicVarSource, Creature?, decimal>? _generalCalc = null;
+
+    /// <summary>
+    /// Returns the three variables necessary for a calculated var, where the calculated value is equal to
+    /// baseVal + (bonus * mult).
+    /// </summary>
+    public static IEnumerable<DynamicVar> Create(string name, int baseVal, 
+        Func<DynamicVarSource, Creature?, decimal> bonus, int mult = 1)
+    {
+        var calculatedVar = new CustomCalculatedVar(name);
+        calculatedVar.GeneralMultiplier(bonus);
+        yield return new DynamicVar($"{calculatedVar.Name}Base", baseVal);
+        yield return new DynamicVar($"{calculatedVar.Name}Extra", mult);
+        yield return calculatedVar;
+    }
     
     public CustomCalculatedVar(string name) : base(name)
     {
