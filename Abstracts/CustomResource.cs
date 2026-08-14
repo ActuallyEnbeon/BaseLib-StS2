@@ -13,6 +13,7 @@ using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
+using MegaCrit.Sts2.Core.Nodes.Combat;
 
 namespace BaseLib.Abstracts;
 
@@ -183,6 +184,26 @@ internal static class CustomResourcePatches
             }
         }
     }
+    
+    // Energy Reset
+    [HarmonyPatch(typeof(Hook), nameof(Hook.AfterEnergyReset), MethodType.Async)]
+    [HarmonyTranspiler]
+    static IEnumerable<CodeInstruction> AfterPlay(ILGenerator generator, IEnumerable<CodeInstruction> instructions, MethodBase original)
+    {
+        return AsyncMethodCall.Create(generator, instructions, original, 
+            AccessTools.Method(typeof(CustomResourcePatches), nameof(BeforeEnergyResetHook)), beforeState: original);
+    }
+
+    private static async Task BeforeEnergyResetHook(ICombatState combatState, Player player)
+    {
+        var playerCombatState = player?.PlayerCombatState;
+        if (playerCombatState == null) return;
+        
+        foreach (var resource in RegisteredResources)
+        {
+            resource.GetResource(playerCombatState).StartOfTurnReset(playerCombatState, combatState);
+        }
+    }
 }
 
 
@@ -190,6 +211,8 @@ internal static class CustomResourcePatches
 #endregion
 
 internal class ResourceHandler(string id, 
+    ICustomResourceVisualsHandler? visualsHandler,
+    ICustomCostVisualsHandler? costVisualsHandler,
     Func<PlayerCombatState, CustomResource> getResource,
     Func<CardModel, ICustomResourceCost?> getCost,
     Action<PlayerCombatState> prep, Action<PlayerCombatState> cleanup,
@@ -206,6 +229,9 @@ internal class ResourceHandler(string id,
 {
     public string Id { get; } = id;
     
+    public ICustomResourceVisualsHandler? VisualsHandler { get; } = visualsHandler;
+    public ICustomCostVisualsHandler? CostVisualsHandler { get; } = costVisualsHandler;
+
     public Func<PlayerCombatState, CustomResource> GetResource { get; } = getResource;
     public Func<CardModel, ICustomResourceCost?> GetCost { get; } = getCost;
     public Action<PlayerCombatState> Prep { get; } = prep;
@@ -246,9 +272,13 @@ public static class CustomResources<T> where T : CustomResource, new()
     {
         if (_registered) return;
         _registered = true;
+
+        var resourceDisplayHandler = resourceInstance.ResourceVisualsHandler();
+        var costDisplayHandler = resourceInstance.CostVisualsHandler();
         
         CustomResourcePatches.RegisteredResources.InsertSorted(
-            new(resourceInstance.Id, Get, Cost, PrepForCombat, CleanupAfterCombat, ResourceCheck,
+            new(resourceInstance.Id, resourceDisplayHandler, costDisplayHandler,
+                Get, Cost, PrepForCombat, CleanupAfterCombat, ResourceCheck,
                 Spend, RecordSpend, 
                 AfterCardPlayedCleanup, EndOfTurnCleanup,
                 SetToFreeThisCombat, SetToFreeThisTurn,
@@ -267,11 +297,11 @@ public static class CustomResources<T> where T : CustomResource, new()
             .CopyOnClone();
 
     private static NotNullSpireField<PlayerCombatState, T> Resource =>
-        _resource ??= new NotNullSpireField<PlayerCombatState, T>(() =>
+        _resource ??= new NotNullSpireField<PlayerCombatState, T>((playerCombatState) =>
         {
             BaseLibMain.Logger.Debug($"Initializing resource {typeof(T).Name} for combat");
             var res = new T();
-            res.PrepForCombat();
+            res.PrepForCombat(playerCombatState);
             res.AmountChanged += CombatManager.Instance.StateTracker.OnPlayerCombatStateValueChanged;
             return res;
         });
@@ -1014,14 +1044,16 @@ public abstract class CustomResource(string id)
     /// <summary>
     /// Return new instance of class that will be used as a singleton to receive card cost UI update events.
     /// Will be called during startup of game, when the resource is registered.
+    /// Return null if handling visuals separately.
     /// </summary>
-    public abstract ICustomCostVisualsHandler CostVisualsHandler();
+    public abstract ICustomCostVisualsHandler? CostVisualsHandler();
 
     /// <summary>
     /// Return new instance of class that will be used as a singleton to receive resource amount UI update events.
     /// Will be called during startup of game, when the resource is registered.
+    /// Return null if handling visuals separately.
     /// </summary>
-    public abstract ICustomResourceVisualsHandler ResourceVisualsHandler();
+    public abstract ICustomResourceVisualsHandler? ResourceVisualsHandler();
 
     /// <summary>
     /// Whether methods that make a card free to play should also set this cost.
@@ -1039,7 +1071,7 @@ public abstract class CustomResource(string id)
     /// Called when the resource is initialized at the start of each combat, if preparation is necessary.
     /// Note that this occurs when the PlayerCombatState is initialized.
     /// </summary>
-    public virtual void PrepForCombat()
+    public virtual void PrepForCombat(PlayerCombatState playerCombatState)
     {
         
     }
@@ -1059,6 +1091,14 @@ public abstract class CustomResource(string id)
             field = value;
             AmountChanged?.Invoke(oldAmount, field);
         }
+    }
+
+    /// <summary>
+    /// Called at the start of each turn, after the player's energy is reset, before the AfterEnergyReset hook occurs.
+    /// </summary>
+    public virtual void StartOfTurnReset(PlayerCombatState playerCombatState, ICombatState combatState)
+    {
+        
     }
 
     /// <summary>
@@ -1127,19 +1167,30 @@ public abstract class CustomResource(string id)
 /// <param name="setEachTurn">If greater than 0, this resource's amount is set to this value at the start of each turn.</param>
 public abstract class BasicCustomResource(string resourceId, int setEachTurn = -1) : CustomResource(resourceId)
 {
-    private readonly int _setEachTurn = setEachTurn;
+    public int DefaultMax { get; set; } = setEachTurn;
 
     /// <inheritdoc />
-    public override void PrepForCombat()
+    public override void PrepForCombat(PlayerCombatState playerCombatState)
     {
         Amount = 0;
     }
 
+    /// <inheritdoc />
+    public override void StartOfTurnReset(PlayerCombatState playerCombatState, ICombatState combatState)
+    {
+        if (DefaultMax >= 0)
+        {
+            Amount = DefaultMax;
+        }
+    }
+
+    /// <inheritdoc />
     public override ICustomCostVisualsHandler CostVisualsHandler()
     {
         return new BasicCostVisualsHandler(this);
     }
 
+    /// <inheritdoc />
     public override ICustomResourceVisualsHandler ResourceVisualsHandler()
     {
         return new BasicResourceVisualsHandler(this);
@@ -1153,5 +1204,8 @@ public class BasicCostVisualsHandler(CustomResource resource) : ICustomCostVisua
 
 public class BasicResourceVisualsHandler(CustomResource resource) : ICustomResourceVisualsHandler
 {
-    
+    public void AddDisplay(NCombatUi nCombatUi, PlayerCombatState playerCombatState)
+    {
+        
+    }
 }

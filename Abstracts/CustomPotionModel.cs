@@ -1,6 +1,6 @@
+using System.Reflection;
 using HarmonyLib;
 using BaseLib.Patches.Content;
-using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Models;
 
 namespace BaseLib.Abstracts;
@@ -33,6 +33,14 @@ public abstract class CustomPotionModel : PotionModel, ICustomModel, ILocalizati
     /// You may pass the path to a png or any other file that Godot can load as a Texture2D.
     /// </summary>
     public virtual string? CustomPackedOutlinePath => null;
+
+    /// <summary>
+    /// Override this or place your potion's large image at
+    /// "res://images/potions/large/modid-potion_name.png"
+    /// You may pass the path to a png or any other file that Godot can load as a Texture2D.
+    /// Currently, this image is unused by basegame.
+    /// </summary>
+    public virtual string? CustomLargeImagePath => null;
     
     /// <summary>
     /// Override this to define localization directly in your class.
@@ -42,19 +50,48 @@ public abstract class CustomPotionModel : PotionModel, ICustomModel, ILocalizati
     
     [HarmonyPatch(typeof(PotionModel), nameof(PackedImagePath), MethodType.Getter)]
     private static class ImagePatch {
-        static bool Prefix(PotionModel __instance, ref string? __result) {
+        [HarmonyPrefix]
+        static bool CustomPath(PotionModel __instance, ref string? __result) {
             if (__instance is not CustomPotionModel model)
                 return true;
             __result = model.CustomPackedImagePath;
             return __result == null;
         }
     }
+    
     [HarmonyPatch(typeof(PotionModel), nameof(PackedOutlinePath), MethodType.Getter)]
     private static class OutlinePatch {
-        static bool Prefix(PotionModel __instance, ref string? __result) {
+        [HarmonyPrefix]
+        static bool CustomPath(PotionModel __instance, ref string? __result) {
             if (__instance is not CustomPotionModel model)
                 return true;
             __result = model.CustomPackedOutlinePath;
+            return __result == null;
+        }
+    }
+    
+    [HarmonyPatch]
+    private static class LargeImagePatch {
+        private static readonly MethodInfo? GetLargeImagePath = AccessTools.PropertyGetter(typeof(PotionModel), "LargeImagePath");
+        static IEnumerable<MethodBase> TargetMethods()
+        {
+            if (GetLargeImagePath != null) yield return GetLargeImagePath;
+        }
+
+        static bool Prepare()
+        {
+            if (GetLargeImagePath == null)
+            {
+                BaseLibMain.Logger.Info("Skipping potion LargeImagePath patch; does not exist");
+            }
+            return GetLargeImagePath != null;
+        }
+        
+        [HarmonyPrefix]
+        static bool CustomPath(PotionModel __instance, ref string? __result) {
+            if (__instance is not CustomPotionModel model)
+                return true;
+            __result = model.CustomLargeImagePath;
             return __result == null;
         }
     }

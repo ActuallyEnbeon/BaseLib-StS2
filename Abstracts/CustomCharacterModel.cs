@@ -51,6 +51,13 @@ public abstract class CustomCharacterModel : CharacterModel, ICustomModel, ILoca
     public virtual bool HideInCompendium => false;
 
     /// <summary>
+    /// The ID that the game will attempt to open the compendium to when opening the compendium in a run
+    /// as this character. Mostly recommended for use with HideInCompendium, though it can be used separately.
+    /// If this ID is not found, the compendium will default to the Ironclad.
+    /// </summary>
+    public virtual ModelId DefaultCompendiumOpenModelId => Id;
+
+    /// <summary>
     /// Override this or place your scene at res://scenes/creature_visuals/class_name.tscn
     /// </summary>
     public virtual string? CustomVisualPath => null;

@@ -24,7 +24,7 @@ namespace BaseLib.Common.Rewards;
 /// <example>
 /// In a relic or power's <c>AfterCombatEnd</c> override
 /// <code>
-/// room.AddExtraReward(Owner.Player, new CardTransformReward(Owner.Player) {Amount = Amount, Upgrade = true});
+/// room.AddExtraReward(Owner.Player, new CardTransformReward(Owner.Player) {MaxCards = MaxCards, Upgrade = true});
 /// </code> </example>
 public sealed class CardTransformReward(Player player) : CustomReward(player)
 {
@@ -45,18 +45,18 @@ public sealed class CardTransformReward(Player player) : CustomReward(player)
     /// <summary>
     /// How many cards can be selected in this reward screen
     /// </summary>
-    public required int Amount;
+    public required int MaxCards;
 
     /// <summary>
-    /// The description to show in the reward screen,
-    /// switches based on whether the reward will upgrade the transformed cards
+    /// The description to show in the reward screen.
+    /// Switches wording based on whether the reward will upgrade the transformed cards
     /// </summary>
     public override LocString Description
     {
         get
         {
             LocString locString = new LocString("gameplay_ui", "BASELIB-COMBAT_REWARD_CARD_TRANSFORM");
-            locString.Add("cards", Amount);
+            locString.Add("cards", MaxCards);
             locString.Add("Upgrade", Upgrade);
             return locString;
         }
@@ -76,7 +76,7 @@ public sealed class CardTransformReward(Player player) : CustomReward(player)
         return new SerializableReward()
         {
             RewardType = CardTransform,
-            GoldAmount = Amount,
+            GoldAmount = MaxCards,
             WasGoldStolenBack = Upgrade
         };
     }
@@ -91,7 +91,7 @@ public sealed class CardTransformReward(Player player) : CustomReward(player)
     {
         return new CardTransformReward(player) {
             // hijacking the gold amounts as a temp hack before worrying about extending the serialized values
-            Amount = save.GoldAmount,
+            MaxCards = save.GoldAmount,
             Upgrade = save.WasGoldStolenBack
         };
     }
@@ -108,7 +108,7 @@ public sealed class CardTransformReward(Player player) : CustomReward(player)
     protected override async Task<bool> OnSelect()
     {
         BaseLibMain.Logger.Info("Obtained card transformation from reward");
-        return await RunManager.Instance.RewardSynchronizer.DoUnsyncedCardTransform(Player, Amount, true);
+        return await RunManager.Instance.RewardSynchronizer.DoUnsyncedCardTransform(Player, MaxCards, Upgrade);
     }
 }
 
@@ -120,10 +120,12 @@ static class TransformRewardSynchronizerPatches
         /// Transform a card for a specific player as a combat reward
         /// This is allowed to be called without sending a message becasue transforming already sends it's own one
         /// </summary>
-        public async Task<bool> DoUnsyncedCardTransform(Player player, int amount = 1, bool upgrade = false)
+        public async Task<bool> DoUnsyncedCardTransform(Player player, int maxCards = 1, bool upgrade = false)
         {
-            var loc = upgrade ? CardSelectorPrefsExtensions.TransformAndUpgradeSelectionPrompt : CardSelectorPrefs.TransformSelectionPrompt;
-            CardSelectorPrefs prefs = new CardSelectorPrefs(loc, 1, amount)
+            var loc = upgrade ?
+                CardSelectorPrefs.TransformAndUpgradeSelectionPrompt :
+                CardSelectorPrefs.TransformSelectionPrompt;
+            CardSelectorPrefs prefs = new CardSelectorPrefs(loc, 1, maxCards)
             {
                 Cancelable = true,
                 RequireManualConfirmation = true
@@ -136,7 +138,7 @@ static class TransformRewardSynchronizerPatches
             {
                 CardModel newCard = CardFactory.CreateRandomCardForTransform(card, isInCombat: false, player.RunState.Rng.Niche);
 
-                // MAYBE: potentially add a toggle for keeping upgrade state;
+                // MAYBE: potentially add a toggle for keeping upgrade state and enchantments (like ancient transformations)
                 // and a more robust handler for multi-upgrade cards/upgrading more than once?
                 if (upgrade)
                 {

@@ -116,7 +116,7 @@ public static class WhatMod
 
         var mod = FindMod(type);
         var name = mod?.manifest?.name;
-        var id = mod?.manifest?.id ??  type.GetRootNamespace();
+        var id = mod?.manifest?.id ?? type.GetRootNamespace();
 
         if (string.IsNullOrWhiteSpace(name))
             return id;
