@@ -1,6 +1,6 @@
+using System.Reflection;
 using HarmonyLib;
 using BaseLib.Patches.Content;
-using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Models;
 
 namespace BaseLib.Abstracts;
@@ -58,6 +58,7 @@ public abstract class CustomPotionModel : PotionModel, ICustomModel, ILocalizati
             return __result == null;
         }
     }
+    
     [HarmonyPatch(typeof(PotionModel), nameof(PackedOutlinePath), MethodType.Getter)]
     private static class OutlinePatch {
         [HarmonyPrefix]
@@ -68,8 +69,24 @@ public abstract class CustomPotionModel : PotionModel, ICustomModel, ILocalizati
             return __result == null;
         }
     }
-    [HarmonyPatch(typeof(PotionModel), nameof(LargeImagePath), MethodType.Getter)]
+    
+    [HarmonyPatch]
     private static class LargeImagePatch {
+        private static readonly MethodInfo? GetLargeImagePath = AccessTools.PropertyGetter(typeof(PotionModel), "LargeImagePath");
+        static IEnumerable<MethodBase> TargetMethods()
+        {
+            if (GetLargeImagePath != null) yield return GetLargeImagePath;
+        }
+
+        static bool Prepare()
+        {
+            if (GetLargeImagePath == null)
+            {
+                BaseLibMain.Logger.Info("Skipping potion LargeImagePath patch; does not exist");
+            }
+            return GetLargeImagePath != null;
+        }
+        
         [HarmonyPrefix]
         static bool CustomPath(PotionModel __instance, ref string? __result) {
             if (__instance is not CustomPotionModel model)
