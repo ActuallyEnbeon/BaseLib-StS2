@@ -232,6 +232,11 @@ public class TheBigPatchToCardPileCmdAdd
             var targetMethodAddResult = AccessTools.Method(typeof(CardPileCmd), "GetTweenForCardsChangingPiles",
                 [
                     typeof(IEnumerable<CardPileAddResult>)
+                ]) ??
+                AccessTools.Method(typeof(CardPileCmd), "GetTweenForCardsChangingPiles",
+                [
+                    typeof(IEnumerable<CardPileAddResult>),
+                    typeof(bool)
                 ]);
             var targetMethodMakeTween = AccessTools.Method(typeof(CardPileCmd), "GetTweenForCardsChangingPiles",
             [
