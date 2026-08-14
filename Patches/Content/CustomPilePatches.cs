@@ -572,9 +572,6 @@ public class TheBigPatchToCardPileCmdAdd
                 .call_any(typeof(CardModel).PropertyGetter(nameof(CardModel.Pile))))
             .CopyMatch(0, 2, out var loadCard)
             .Match(new InstructionMatcher() //patch for generic goaway tween
-                .ldloc(displayClassLocIndex)
-                .ldflda()
-                .call_any().PredicateMatch(op => op is MethodInfo { Name: "GetValueOrDefault"})
                 .stloc_any().StoreOperand("index")
                 .ldloc("index")
                 .ldc_i4_1()
@@ -596,9 +593,6 @@ public class TheBigPatchToCardPileCmdAdd
             )
             .Step(-1).GetOperandLabel(out var tweenLoopEnd) //jump location after tween is set up
             .Match(new InstructionMatcher()
-                .ldloc(displayClassLocIndex)
-                .ldflda()
-                .call_any()
                 .stloc_any().StoreOperand("index")
                 .ldloc("index")
                 .ldc_i4_2()

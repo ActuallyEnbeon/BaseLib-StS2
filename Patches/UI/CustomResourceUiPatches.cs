@@ -37,7 +37,7 @@ class CustomResourceUiPatches
             .Insert([
                 CodeInstruction.LoadArgument(0),
                 CodeInstruction.LoadArgument(1),
-                CodeInstruction.Call(typeof(CustomResourcePatches), nameof(AddUIElementInsert))
+                CodeInstruction.Call(typeof(CustomResourceUiPatches), nameof(AddUIElementInsert))
             ]);
     }
 
